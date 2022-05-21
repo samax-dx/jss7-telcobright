@@ -12,6 +12,10 @@
 	<name>Restcomm jSS7 :: ISUP :: Impl :: ${project.artifactId}</name>
 	
 	<dependencies>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
 		<!-- TESTs, req to enable concurrent! not used now -->
 		<dependency>
 			<groupId>junit</groupId>

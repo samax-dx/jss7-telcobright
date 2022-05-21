@@ -112,7 +112,7 @@ rem With Sun JVMs reduce the RMI GCs to once per hour
 set JAVA_OPTS=%JAVA_OPTS% -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
 
 rem JPDA options. Uncomment and modify as appropriate to enable remote debugging.
-rem set JAVA_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y %JAVA_OPTS%
+set JAVA_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y %JAVA_OPTS%
 
 rem Setup the java endorsed dirs
 set SIMULATOR_ENDORSED_DIRS=%SIMULATOR_HOME%\lib
