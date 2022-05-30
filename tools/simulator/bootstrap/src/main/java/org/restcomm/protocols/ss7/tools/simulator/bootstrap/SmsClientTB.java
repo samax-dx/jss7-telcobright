@@ -42,6 +42,7 @@ import org.restcomm.protocols.ss7.map.api.service.sms.SendRoutingInfoForSMReques
 import org.restcomm.protocols.ss7.map.api.service.sms.SendRoutingInfoForSMResponse;
 import org.restcomm.protocols.ss7.map.api.service.sms.SmsSignalInfo;
 import org.restcomm.protocols.ss7.map.api.smstpdu.AddressField;
+import org.restcomm.protocols.ss7.map.api.smstpdu.DataCodingScheme;
 import org.restcomm.protocols.ss7.map.api.smstpdu.NumberingPlanIdentification;
 import org.restcomm.protocols.ss7.map.api.smstpdu.ProtocolIdentifier;
 import org.restcomm.protocols.ss7.map.api.smstpdu.SmsSubmitTpdu;
@@ -49,6 +50,7 @@ import org.restcomm.protocols.ss7.map.api.smstpdu.TypeOfNumber;
 import org.restcomm.protocols.ss7.map.api.smstpdu.UserData;
 import org.restcomm.protocols.ss7.map.api.smstpdu.ValidityPeriod;
 import org.restcomm.protocols.ss7.map.smstpdu.AddressFieldImpl;
+import org.restcomm.protocols.ss7.map.smstpdu.DataCodingSchemeImpl;
 import org.restcomm.protocols.ss7.map.smstpdu.ProtocolIdentifierImpl;
 import org.restcomm.protocols.ss7.map.smstpdu.SmsSubmitTpduImpl;
 import org.restcomm.protocols.ss7.map.smstpdu.UserDataImpl;
@@ -69,17 +71,23 @@ public class SmsClientTB {
         this.mapMan = mapMan;
     }
 
-    private static int smsCodingToDcs(SmsCodingType smsCodingType) {
-        switch (smsCodingType.intValue()) {
+    private static DataCodingScheme smsCodingToDcs(int smsCodingType) {
+        int code;
+        switch (smsCodingType) {
             case SmsCodingType.VAL_GSM7:
-                return 0;
+                code = 0;
+                break;
             case SmsCodingType.VAL_GSM8:
-                return 4;
+                code = 4;
+                break;
             case SmsCodingType.VAL_UCS2:
-                return 8;
+                code = 8;
+                break;
             default:
-                return -1;
+                code = -1;
+                break;
         }
+        return code > 0 ? new DataCodingSchemeImpl(code) : null;
     }
 
     private class HostMessageData {
