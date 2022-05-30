@@ -89,7 +89,7 @@ public class MainTBC {
 
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < repeatCount; ++i) {
-            smsClient.sendSms(message, "8888", "1111");
+            smsClient.sendSms(message, "8888", "1111", repeatCount);
         }
         long endTime = System.currentTimeMillis();
 

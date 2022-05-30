@@ -42,25 +42,22 @@ import org.restcomm.protocols.ss7.map.api.service.sms.SendRoutingInfoForSMReques
 import org.restcomm.protocols.ss7.map.api.service.sms.SendRoutingInfoForSMResponse;
 import org.restcomm.protocols.ss7.map.api.service.sms.SmsSignalInfo;
 import org.restcomm.protocols.ss7.map.api.smstpdu.AddressField;
-import org.restcomm.protocols.ss7.map.api.smstpdu.DataCodingScheme;
 import org.restcomm.protocols.ss7.map.api.smstpdu.NumberingPlanIdentification;
 import org.restcomm.protocols.ss7.map.api.smstpdu.ProtocolIdentifier;
 import org.restcomm.protocols.ss7.map.api.smstpdu.SmsSubmitTpdu;
 import org.restcomm.protocols.ss7.map.api.smstpdu.TypeOfNumber;
 import org.restcomm.protocols.ss7.map.api.smstpdu.UserData;
-import org.restcomm.protocols.ss7.map.api.smstpdu.UserDataHeader;
 import org.restcomm.protocols.ss7.map.api.smstpdu.ValidityPeriod;
 import org.restcomm.protocols.ss7.map.smstpdu.AddressFieldImpl;
-import org.restcomm.protocols.ss7.map.smstpdu.DataCodingSchemeImpl;
 import org.restcomm.protocols.ss7.map.smstpdu.ProtocolIdentifierImpl;
 import org.restcomm.protocols.ss7.map.smstpdu.SmsSubmitTpduImpl;
 import org.restcomm.protocols.ss7.map.smstpdu.UserDataImpl;
 import org.restcomm.protocols.ss7.map.smstpdu.ValidityPeriodImpl;
+import org.restcomm.protocols.ss7.sccp.parameter.SccpAddress;
 import org.restcomm.protocols.ss7.tcap.asn.ApplicationContextName;
 import org.restcomm.protocols.ss7.tcap.asn.comp.Problem;
 import org.restcomm.protocols.ss7.tools.simulator.tests.sms.SmsCodingType;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 
@@ -271,43 +268,37 @@ public class SmsClientTB {
         });
     }
 
-    public void sendSms(String msg, String destIsdnNumber, String origIsdnNumber) throws MAPException {
+    public void sendSms(String msg, String destIsdnNumber, String origIsdnNumber, int repeatCount) throws MAPException {
         int msgRef = 0;
         int segmCnt = 0;
         int segmNum = 0;
+        MAPProvider mapProvider = this.mapMan.getMAPStack().getMAPProvider();
 
         AddressNature addressNature = AddressNature.international_number;
         NumberingPlan numberingPlan = NumberingPlan.ISDN;
-        TypeOfNumber typeOfNumber = TypeOfNumber.InternationalNumber;
-        NumberingPlanIdentification numberingPlanIdentification = NumberingPlanIdentification.ISDNTelephoneNumberingPlan;
-        SmsCodingType smsCodingType = new SmsCodingType(SmsCodingType.VAL_GSM7);
-        boolean statusReportRequest = false;
-        Charset isoCharset = StandardCharsets.ISO_8859_1;
 
-        MAPProvider mapProvider = this.mapMan.getMAPStack().getMAPProvider();
-
-        MAPApplicationContext mapAppContext = MAPApplicationContext.getInstance(MAPApplicationContextName.shortMsgMORelayContext, MAPApplicationContextVersion.version3);
-        String serviceCentreAddr = "";
-
-        AddressString serviceCentreAddressDA = mapProvider.getMAPParameterFactory().createAddressString(addressNature, numberingPlan, serviceCentreAddr);
+        AddressString serviceCentreAddressDA = mapProvider.getMAPParameterFactory().createAddressString(addressNature, numberingPlan, "");
         SM_RP_DA da = mapProvider.getMAPParameterFactory().createSM_RP_DA(serviceCentreAddressDA);
+
         ISDNAddressString msisdn = mapProvider.getMAPParameterFactory().createISDNAddressString(addressNature, numberingPlan, origIsdnNumber);
         SM_RP_OA oa = mapProvider.getMAPParameterFactory().createSM_RP_OA_Msisdn(msisdn);
 
-        AddressField destAddress = new AddressFieldImpl(typeOfNumber, numberingPlanIdentification, destIsdnNumber);
-        DataCodingScheme dcs = new DataCodingSchemeImpl(smsCodingToDcs(smsCodingType));
-        UserDataHeader udh = null;
-
-        UserData userData = new UserDataImpl(msg, dcs, udh, isoCharset);
+        AddressField destAddress = new AddressFieldImpl(TypeOfNumber.InternationalNumber, NumberingPlanIdentification.ISDNTelephoneNumberingPlan, destIsdnNumber);
         ProtocolIdentifier pi = new ProtocolIdentifierImpl(0);
         ValidityPeriod validityPeriod = new ValidityPeriodImpl(169); // 3
+        UserData userData = new UserDataImpl(msg, smsCodingToDcs(SmsCodingType.VAL_GSM7), null, StandardCharsets.ISO_8859_1);
 
-        SmsSubmitTpdu tpdu = new SmsSubmitTpduImpl(false, false, statusReportRequest, ++mesRef, destAddress, pi, validityPeriod, userData);
-        SmsSignalInfo si = mapProvider.getMAPParameterFactory().createSmsSignalInfo(tpdu, null);
+        MAPApplicationContext mapAppContext = MAPApplicationContext.getInstance(MAPApplicationContextName.shortMsgMORelayContext, MAPApplicationContextVersion.version3);
+        SccpAddress scOrigAddress = this.mapMan.createOrigAddress();
+        SccpAddress scDestAddress = this.mapMan.createDestAddress();
 
-        MAPDialogSms curDialog = mapProvider.getMAPServiceSms().createNewDialog(mapAppContext, this.mapMan.createOrigAddress(), null, this.mapMan.createDestAddress(), null);
-        curDialog.addMoForwardShortMessageRequest(da, oa, si, null, null);
-        curDialog.send();
-//        curDialog.close(true);
+        for (int i = 0; i < repeatCount; ++i) {
+            SmsSubmitTpdu tpdu = new SmsSubmitTpduImpl(false, false, false, ++mesRef, destAddress, pi, validityPeriod, userData);
+            SmsSignalInfo si = mapProvider.getMAPParameterFactory().createSmsSignalInfo(tpdu, null);
+
+            MAPDialogSms curDialog = mapProvider.getMAPServiceSms().createNewDialog(mapAppContext, scOrigAddress, null, scDestAddress, null);
+            curDialog.addMoForwardShortMessageRequest(da, oa, si, null, null);
+            curDialog.send();
+        }
     }
 }
