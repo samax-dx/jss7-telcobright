@@ -88,9 +88,7 @@ public class MainTBC {
         Thread.sleep(15000); // waiting for freeing ip ports
 
         long startTime = System.currentTimeMillis();
-        for (int i = 0; i < repeatCount; ++i) {
-            smsClient.sendSms(message, "8888", "1111", repeatCount);
-        }
+        smsClient.sendSms(message, "8888", "1111", repeatCount);
         long endTime = System.currentTimeMillis();
 
         onDone.accept(startTime, endTime);
