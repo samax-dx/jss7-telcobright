@@ -32,7 +32,8 @@ public class MainTBC {
 //                "TPS: " + (((double) task.repeatCount) / (endTime - startTime) * 100)
         });
 
-        Path reportPath = Paths.get("/home/samax/ss7cnf/" + task.operatorName + ".report.json");
+        String confDir = ArgsTB.get(0);
+        Path reportPath = Paths.get(confDir + "/ss7cnf" + task.operatorName + ".report.json");
         try {
             Files.write(reportPath, report.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -53,10 +54,13 @@ public class MainTBC {
     }
 
     public static void main(String[] args) throws Exception {
+        ArgsTB.init(args);
         BasicConfigurator.configure();
 
+        String confDir = ArgsTB.get(0);
+
         int taskIndex = 0;
-        for (SS7Task task : getConfigs("/home/samax/ss7cnf/")) {
+        for (SS7Task task : getConfigs(confDir + "/ss7cnf")) {
             for (int i = 0; i < task.threadCount; ++i) {
                 int finalTaskIndex = taskIndex++;
                 Thread t = new Thread(() -> {

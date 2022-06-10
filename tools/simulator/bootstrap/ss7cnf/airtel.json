@@ -1,0 +1,6 @@
+{
+    "operatorName": "Airtel",
+    "message": "Hello Airtel user!!",
+    "repeatCount": 10000,
+    "threadCount": 2
+}

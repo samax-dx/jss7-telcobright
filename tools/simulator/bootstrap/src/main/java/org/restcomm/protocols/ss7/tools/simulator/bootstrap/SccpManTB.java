@@ -10,7 +10,7 @@ import org.restcomm.protocols.ss7.sccp.impl.SccpStackImpl;
 
 public class SccpManTB {
     private final String name;
-    private final String persistDir = "/home/samax";//System.getProperty("user.home");
+    private final String persistDir = ArgsTB.get(0);//System.getProperty("user.home");
     private final Mtp3UserPart mtp3UserPart;
     private final int opc;
     private final int dpc;

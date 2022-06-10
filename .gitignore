@@ -1,3 +1,11 @@
+# ignore junk ss7conf files
+tools/simulator/bootstrap/TestingSccp_*.xml
+tools/simulator/bootstrap/SimSCTPServer_*_sctp.xml
+tools/simulator/bootstrap/SimM3uaServer_*_m3ua1.xml
+
+# ignore nohup outputs
+nohup.out
+
 # ignore .svn metadata files
 .svn
 # ignore Maven generated target folders

@@ -24,7 +24,7 @@ public class SctpManTB {
     protected String remoteHost = "127.0.0.1";
     protected int remotePort;
 
-    private final String persistDir = "/home/samax";//System.getProperty("user.home");
+    private final String persistDir = ArgsTB.get(0);//System.getProperty("user.home");
     private final ParameterFactory factory = new ParameterFactoryImpl();
     private Management sctpManagement;
     private M3UAManagementProxyImpl m3uaMgmt;

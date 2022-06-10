@@ -30,10 +30,13 @@ public class MainTBS {
     }
 
     public static void main(String[] args) throws Exception {
+        ArgsTB.init(args);
         BasicConfigurator.configure();
 
+        String confDir = ArgsTB.get(0);
+
         int taskIndex = 0;
-        for (SS7Task task : getConfigs("/home/samax/ss7cnf/")) {
+        for (SS7Task task : getConfigs(confDir + "/ss7cnf")) {
             for (int i = 0; i < task.threadCount; ++i) {
                 int finalTaskIndex = taskIndex++;
                 Thread t = new Thread(() -> {

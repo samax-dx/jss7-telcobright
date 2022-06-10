@@ -10,7 +10,7 @@ import org.restcomm.protocols.ss7.sccp.parameter.SccpAddress;
 
 
 public class TcMapManTB {
-    private final String persistDir = "/home/samax";//System.getProperty("user.home");
+    private final String persistDir = ArgsTB.get(0);//System.getProperty("user.home");
 
     private final SccpManTB sccpClient;
     protected ParameterFactory parameterFactory = new ParameterFactoryImpl();

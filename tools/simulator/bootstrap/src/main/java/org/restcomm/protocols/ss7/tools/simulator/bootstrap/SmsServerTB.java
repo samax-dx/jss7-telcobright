@@ -258,16 +258,16 @@ public class SmsServerTB {
                             return;
                         }
                     }
+                    return;
                 }
 
-                try {
-                    if (needSendClose) {
+                if (needSendClose) {
+                    try {
                         needSendClose = false;
                         mapDialog.close(false);
-                        return;
+                    } catch (Exception e) {
+                        System.out.println("Exception when invoking close() : " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    System.out.println("Exception when invoking close() : " + e.getMessage());
                     return;
                 }
 
