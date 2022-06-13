@@ -37,13 +37,10 @@ import org.restcomm.protocols.ss7.m3ua.parameter.RoutingContext;
  *
  */
 public abstract class MessageHandler {
-
     protected AspFactoryImpl aspFactoryImpl = null;
-
     public MessageHandler(AspFactoryImpl aspFactoryImpl) {
         this.aspFactoryImpl = aspFactoryImpl;
     }
-
     protected void sendError(RoutingContext rc, ErrorCode errorCode) {
         Error error = (Error) this.aspFactoryImpl.messageFactory.createMessage(MessageClass.MANAGEMENT, MessageType.ERROR);
         error.setErrorCode(errorCode);

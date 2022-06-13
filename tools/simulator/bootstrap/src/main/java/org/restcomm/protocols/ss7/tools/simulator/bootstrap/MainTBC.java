@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 
 public class MainTBC {
+    static String basePath;
     public static void writeSs7TaskReport(SS7Task task, long startTime, long endTime) {
         String startedOn = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(startTime);
         String endedOn = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(endTime);
@@ -57,10 +58,10 @@ public class MainTBC {
         ArgsTB.init(args);
         BasicConfigurator.configure();
 
-        String confDir = ArgsTB.get(0);
+        basePath = ArgsTB.get(0);
 
         int taskIndex = 0;
-        for (SS7Task task : getConfigs(confDir + "/ss7cnf")) {
+        for (SS7Task task : getConfigs(basePath + "/ss7cnf")) {
             for (int i = 0; i < task.threadCount; ++i) {
                 int finalTaskIndex = taskIndex++;
                 Thread t = new Thread(() -> {
@@ -77,7 +78,7 @@ public class MainTBC {
     }
 
     private static void runApp(int instanceNumber, String message, int repeatCount, BiConsumer<Long, Long> onDone) throws Exception {
-        SctpManTB sctpClient = new SctpManTB(instanceNumber);
+        SctpManTB sctpClient = new SctpManTB(true,instanceNumber,3,false);
         sctpClient.start();
 
         SccpManTB sccpClient = new SccpManTB(sctpClient.getMtp3UserPart());
@@ -91,11 +92,20 @@ public class MainTBC {
 
         Thread.sleep(15000); // waiting for freeing ip ports
 
-        long startTime = System.currentTimeMillis();
-        smsClient.sendSms(message, "8888", "1111", repeatCount);
-        long endTime = System.currentTimeMillis();
+        //long startTime = System.currentTimeMillis();
+        SmsResult smsResult=smsClient.sendSms(message, "8888", "1111", /*repeatCount*/2000);
+        //long endTime = System.currentTimeMillis();
 
-        onDone.accept(startTime, endTime);
+        //onDone.accept(startTime, endTime);
+
+        Path reportPath = Paths.get(basePath + "/ss7cnf/" + "report" + ".txt");
+        try {
+            Files.write(reportPath, smsResult.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     public static class SS7Task {

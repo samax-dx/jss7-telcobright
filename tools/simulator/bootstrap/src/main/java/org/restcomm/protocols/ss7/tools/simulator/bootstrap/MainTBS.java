@@ -33,27 +33,13 @@ public class MainTBS {
         ArgsTB.init(args);
         BasicConfigurator.configure();
 
-        String confDir = ArgsTB.get(0);
-
-        int taskIndex = 0;
-        for (SS7Task task : getConfigs(confDir + "/ss7cnf")) {
-            for (int i = 0; i < task.threadCount; ++i) {
-                int finalTaskIndex = taskIndex++;
-                Thread t = new Thread(() -> {
-                    try {
-                        runApp(finalTaskIndex);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-                t.start();
-                Thread.sleep(1000);
-            }
-        }
+        SmsServerTB smsServerTB= createSmsServerInstance(6,false, 5500,5000);
+        smsServerTB.start();
+        Thread.sleep(1500);
     }
-
-    private static void runApp(int instanceNumber) throws Exception {
-        SctpManTB sctpServer = new SctpManTB(false, instanceNumber);
+    private static SmsServerTB createSmsServerInstance(int noOfWorkerThread, boolean setSingleThread,
+                                                       int localPort, int remotePort) throws Exception {
+        SctpManServer sctpServer = new SctpManServer("smsServer",noOfWorkerThread,setSingleThread,localPort,remotePort);
         sctpServer.start(false);
 
         SccpManTB sccpServer = new SccpManTB(sctpServer.getMtp3UserPart(), false);
@@ -63,9 +49,8 @@ public class MainTBS {
         mapServer.start();
 
         SmsServerTB smsServer = new SmsServerTB(mapServer);
-        smsServer.start();
+        return smsServer;
     }
-
     public static class SS7Task {
         @JsonProperty("operatorName")
         private String operatorName;

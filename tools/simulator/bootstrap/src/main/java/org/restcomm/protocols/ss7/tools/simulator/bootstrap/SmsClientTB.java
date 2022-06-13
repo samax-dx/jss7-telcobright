@@ -60,7 +60,13 @@ import org.restcomm.protocols.ss7.tcap.asn.ApplicationContextName;
 import org.restcomm.protocols.ss7.tcap.asn.comp.Problem;
 import org.restcomm.protocols.ss7.tools.simulator.tests.sms.SmsCodingType;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class SmsClientTB {
@@ -276,7 +282,7 @@ public class SmsClientTB {
         });
     }
 
-    public void sendSms(String msg, String destIsdnNumber, String origIsdnNumber, int repeatCount) throws MAPException {
+    public SmsResult sendSms(String msg, String destIsdnNumber, String origIsdnNumber, int repeatCount) throws MAPException {
         int msgRef = 0;
         int segmCnt = 0;
         int segmNum = 0;
@@ -299,14 +305,24 @@ public class SmsClientTB {
         MAPApplicationContext mapAppContext = MAPApplicationContext.getInstance(MAPApplicationContextName.shortMsgMORelayContext, MAPApplicationContextVersion.version3);
         SccpAddress scOrigAddress = this.mapMan.createOrigAddress();
         SccpAddress scDestAddress = this.mapMan.createDestAddress();
-
+        long startTime = System.nanoTime();
+        List<MAPDialog> smsDialogs= new ArrayList<MAPDialog>();
         for (int i = 0; i < repeatCount; ++i) {
             SmsSubmitTpdu tpdu = new SmsSubmitTpduImpl(false, false, false, ++mesRef, destAddress, pi, validityPeriod, userData);
             SmsSignalInfo si = mapProvider.getMAPParameterFactory().createSmsSignalInfo(tpdu, null);
 
             MAPDialogSms curDialog = mapProvider.getMAPServiceSms().createNewDialog(mapAppContext, scOrigAddress, null, scDestAddress, null);
             curDialog.addMoForwardShortMessageRequest(da, oa, si, null, null);
-            curDialog.send();
+            smsDialogs.add(curDialog);
+            //curDialog.send();
+            //curDialog.close(false);
         }
+        for (MAPDialog dialog:smsDialogs
+             ) {
+            dialog.send();
+        }
+        long endTime = System.nanoTime();
+        long durationMs = (endTime - startTime)/1000000;  //divide by 1000000 to get milliseconds.
+        return new SmsResult(repeatCount,durationMs);
     }
 }

@@ -1,0 +1,4 @@
+No of sms: 2000
+Duration (ms): 1508
+Duration (s): 1
+SMS/sec: 2000.00

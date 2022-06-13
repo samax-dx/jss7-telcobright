@@ -1,6 +1,6 @@
 {
     "operatorName": "GrameenPhone",
     "message": "Hello GP user!!",
-    "repeatCount": 10000,
-    "threadCount": 2
+    "repeatCount": 18000,
+    "threadCount": 1
 }

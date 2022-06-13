@@ -16,33 +16,29 @@ import org.restcomm.protocols.ss7.mtp.RoutingLabelFormat;
 import org.restcomm.protocols.ss7.tools.simulator.level1.M3UAManagementProxyImpl;
 
 
-public class SctpManTB {
+public class SctpManServer {
     private final String name;
     private int noOfWorkerThread;
     private boolean setSingleThread;
     protected String localHost = "127.0.0.1";
     protected int localPort;
     protected String remoteHost = "127.0.0.1";
-    protected int remotePort;
+    protected  int remotePorts;
 
     private final String persistDir = ArgsTB.get(0);//System.getProperty("user.home");
     private final ParameterFactory factory = new ParameterFactoryImpl();
     private Management sctpManagement;
     private M3UAManagementProxyImpl m3uaMgmt;
 
-    public SctpManTB(boolean isClient, int instanceNo,int noOfWorkerThread, boolean setSingleThread) {
-        this.setSingleThread=setSingleThread;
-        this.noOfWorkerThread=noOfWorkerThread;
-        if (isClient) {
-            name = "TelcoClient" + instanceNo;
-            localPort = 5000 + instanceNo;
-            remotePort = 5500 + instanceNo;
-        } else {
-            name = "TelcoServer" + instanceNo;
-            localPort = 5500 + instanceNo;
-            remotePort = 5000 + instanceNo;
-        }
+    public SctpManServer(String name, int noOfWorkerThread, boolean setSingleThread,
+                         int localPort, int remotePorts) {
+        this.setSingleThread = setSingleThread;
+        this.noOfWorkerThread = noOfWorkerThread;
+        this.name = name;
+        this.localPort = 5500;
+        this.remotePorts = 5000;
     }
+
     public void initSCTP() throws Exception {
         initSCTP(false);
     }
@@ -60,21 +56,18 @@ public class SctpManTB {
         this.sctpManagement.removeAllResourses();
         Thread.sleep(500); // waiting for freeing ip ports
 
-        if (isSctpServer) {
-            String SERVER_NAME = "Server_" + name;
+        String SERVER_NAME = "Server_" + name;
 
-            // 1. Create SCTP Server
-            sctpManagement.addServer(SERVER_NAME, localHost, localPort, IpChannelType.SCTP, null);
+        // 1. Create SCTP Server
+        sctpManagement.addServer(SERVER_NAME, localHost, localPort, IpChannelType.SCTP, null);
 
-            // 2. Create SCTP Server Association
-            sctpManagement.addServerAssociation(remoteHost, remotePort, SERVER_NAME, "ServerAss_" + name, IpChannelType.SCTP);
+        // 2. Create SCTP Server Association
 
-            // 3. Start Server
-            sctpManagement.startServer(SERVER_NAME);
-        } else {
-            // 1. Create SCTP Association
-            sctpManagement.addAssociation(localHost, localPort, remoteHost, remotePort, "ServerAss_" + name, IpChannelType.SCTP, null);
-        }
+        sctpManagement.addServerAssociation(remoteHost, remotePorts, SERVER_NAME, "ServerAss_" + name, IpChannelType.SCTP);
+
+        // 3. Start Server
+        sctpManagement.startServer(SERVER_NAME);
+
     }
 
     public void initM3UA() throws Exception {

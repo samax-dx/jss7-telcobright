@@ -33,15 +33,7 @@ import javolution.xml.stream.XMLStreamException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.restcomm.protocols.ss7.indicator.RoutingIndicator;
-import org.restcomm.protocols.ss7.mtp.Mtp3;
-import org.restcomm.protocols.ss7.mtp.Mtp3EndCongestionPrimitive;
-import org.restcomm.protocols.ss7.mtp.Mtp3PausePrimitive;
-import org.restcomm.protocols.ss7.mtp.Mtp3ResumePrimitive;
-import org.restcomm.protocols.ss7.mtp.Mtp3StatusCause;
-import org.restcomm.protocols.ss7.mtp.Mtp3StatusPrimitive;
-import org.restcomm.protocols.ss7.mtp.Mtp3TransferPrimitive;
-import org.restcomm.protocols.ss7.mtp.Mtp3UserPart;
-import org.restcomm.protocols.ss7.mtp.Mtp3UserPartListener;
+import org.restcomm.protocols.ss7.mtp.*;
 import org.restcomm.protocols.ss7.sccp.LongMessageRule;
 import org.restcomm.protocols.ss7.sccp.LongMessageRuleType;
 import org.restcomm.protocols.ss7.sccp.MaxConnectionCountReached;
@@ -88,6 +80,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.restcomm.protocols.ss7.sccp.impl.message.MessageUtil.calculateLudtFieldsLengthWithoutData;
 import static org.restcomm.protocols.ss7.sccp.impl.message.MessageUtil.calculateUdtFieldsLengthWithoutData;
@@ -102,6 +95,13 @@ import static org.restcomm.protocols.ss7.sccp.impl.message.MessageUtil.calculate
  *
  */
 public class SccpStackImpl implements SccpStack, Mtp3UserPartListener {
+    //mustafa
+    long startTime;
+    long endTime;
+    private AtomicInteger receivedMsgCounter= new AtomicInteger(0);
+
+    //end mustafa
+
     protected final Logger logger;
 
     protected static final String SCCP_MANAGEMENT_PERSIST_DIR_KEY = "sccpmanagement.persist.dir";
@@ -1258,6 +1258,33 @@ public class SccpStackImpl implements SccpStack, Mtp3UserPartListener {
         int opc = mtp3Msg.getOpc();
 
         try {
+            //: start forward
+            if (opc == 1) {
+                int sls = mtp3Msg.getSls();
+
+                Mtp3ServiceAccessPoint sap = this.router.findMtp3ServiceAccessPoint(opc, sls);
+                Mtp3UserPart mup = this.getMtp3UserPart(sap.getMtp3Id());
+
+                Mtp3TransferPrimitive newMtp3Msg = mup.getMtp3TransferPrimitiveFactory()
+                        .createMtp3TransferPrimitive(Mtp3._SI_SERVICE_SCCP, mtp3Msg.getNi(), 0, dpc, opc, sls, mtp3Msg.getData());
+                this.receivedMsgCounter.getAndIncrement();
+                if (this.receivedMsgCounter.get() == 1) {
+                    this.startTime = System.nanoTime();
+                }
+                else if(this.receivedMsgCounter.get()==2000){
+                    long endTime = System.nanoTime();
+                    long durationMs = (endTime - startTime)/1000000;  //divide by 1000000 to get milliseconds.
+                    System.out.print("&&&&&&&&&&&&&&&&&elapsed time:" + durationMs + " ms.&&&&&&&&&&&&&&&&&&&&&&&&&&\n");
+
+                }
+                mup.sendMessage(newMtp3Msg);
+                return;
+            } else if (opc == 2) {
+
+                return;
+            }
+            //: end forward
+
             // checking if incoming dpc is local
             if (!this.isPreviewMode() && !this.router.spcIsLocal(dpc)) {
 

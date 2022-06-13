@@ -91,7 +91,7 @@ public class TCAPStackImpl implements TCAPStack {
     // default value of idle timeout and after TC_END remove of task.
     public static final long _DIALOG_TIMEOUT = 60000;
     public static final long _INVOKE_TIMEOUT = 30000;
-    public static final int _MAX_DIALOGS = 5000;
+    public static final int _MAX_DIALOGS = 20000;
     public static final long _EMPTY_INVOKE_TIMEOUT = -1;
     // TCAP state data, it is used ONLY on client side
     protected TCAPProviderImpl tcapProvider;
